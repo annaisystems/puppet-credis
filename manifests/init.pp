@@ -1,6 +1,8 @@
 class credis {
-  $source_package = 'credis-0.2.3.tar.gz'
+  #$source_package = 'credis-0.2.3.tar.gz'
+  $source_package = 'trunk'
   $source_package_url = "https://credis.googlecode.com/files/${source_package}"
+  $source_trunk_url = "http://credis.googlecode.com/svn/trunk/"
   $libname = 'libcredis'
   $incdir = '/usr/include'
 
@@ -20,21 +22,32 @@ class credis {
     }
   }
 
-  exec { 'download credis source':
-    command => "${download_command} $source_package_url",
-    cwd     => '/tmp',
-    creates => "/tmp/${source_package}",
-    unless  => "test -f ${libdir}/$libname.a && test -f ${libdir}/$libname.so",
-    notify  => Exec['extract credis source'],
+  if $source_package == 'trunk' {
+    exec { 'download credis source':
+      command => "svn checkout ${source_trunk_url} /tmp/credis_src",
+      cwd     => '/tmp',
+      unless  => "test -f ${libdir}/$libname.a && test -f ${libdir}/$libname.so",
+      notify  => Exec['build credis'],
+    }
+
+  } else {
+    exec { 'download credis source':
+      command => "${download_command} $source_package_url",
+      cwd     => '/tmp',
+      creates => "/tmp/${source_package}",
+      unless  => "test -f ${libdir}/$libname.a && test -f ${libdir}/$libname.so",
+      notify  => Exec['extract credis source'],
+    }
+
+    exec { 'extract credis source':
+      command     => "rm -rf credis_src && mkdir credis_src && tar -C credis_src --strip-components=1 -xzf ${source_package}",
+      cwd         => '/tmp',
+      refreshonly => true,
+      unless      => "test -f ${libdir}/$libname.a && test -f ${libdir}/$libname.so",
+      notify      => Exec['build credis'],
+    }
   }
-  ->
-  exec { 'extract credis source':
-    command => "rm -rf credis_src && mkdir credis_src && tar -C credis_src --strip-components=1 -xzf ${source_package}",
-    cwd     => '/tmp',
-    unless  => "test -f ${libdir}/$libname.a && test -f ${libdir}/$libname.so",
-    notify  => Exec['build credis'],
-  }
-  ->
+
   exec { 'build credis':
     command     => "make all",
     cwd         => '/tmp/credis_src',
