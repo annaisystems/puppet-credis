@@ -10,6 +10,7 @@ class credis {
     'Debian': {
       $libdir = '/usr/lib'
       $download_command  = 'wget'
+      $svn_pkg = 'subversion'
     }
     'Redhat': {
       $download_command  = 'curl -O -L'
@@ -19,10 +20,19 @@ class credis {
       else {
         $libdir = '/usr/lib'
       }
+      $svn_pkg = 'subversion'
     }
   }
 
   if $source_package == 'trunk' {
+    if !defined(Package[$svn_pkg]) {
+      package { $svn_pkg:
+        ensure => present,
+      }
+    }
+
+    Package[$svn_pkg]
+    ->
     exec { 'download credis source':
       command => "svn checkout ${source_trunk_url} /tmp/credis_src",
       cwd     => '/tmp',
