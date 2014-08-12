@@ -62,7 +62,7 @@ class credis {
     command     => "make all",
     cwd         => '/tmp/credis_src',
     refreshonly => true,
-    notify      => Exec['copy credis files']
+    notify      => Exec["install ${libname}"]
   }
   ->
   exec { "install ${libname}":
