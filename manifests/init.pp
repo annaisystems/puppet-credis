@@ -65,8 +65,8 @@ class credis {
     notify      => Exec['copy credis files']
   }
   ->
-  exec { 'copy credis files':
-    command     => "cp -f /tmp/credis_src/${libname}.* ${libdir} && cp -f /tmp/credis_src/credis.h ${incdir}",
+  exec { "install ${libname}":
+    command     => "mv /tmp/credis_src/${libname}.* ${libdir} && mv /tmp/credis_src/credis.h ${incdir}",
     refreshonly => true,
     notify      => Exec['cleanup credis source']
   }
